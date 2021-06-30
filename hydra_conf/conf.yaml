@@ -1,0 +1,85 @@
+
+seed: 123
+batch_size: 4
+val_split: 0.1
+num_workers: 8
+
+experiment_name: fixed_data_aug
+
+trainer:
+  type: pytorch_lightning.Trainer
+  # overfit_batches: 2
+  # gpus: 1
+  max_epochs: 30
+  # precision: 16
+  # gradient_clip_val: 5.0
+  num_sanity_val_steps: 1
+  # sync_batchnorm: True
+  resume_from_checkpoint: 2021-02-17-v18.ckpt
+
+optimizer:
+  type: torch.optim.Adam
+  lr: 0.0001 # 0.001
+  # weight_decay: 0.01
+
+# scheduler:
+#   type: torch.optim.lr_scheduler.CosineAnnealingWarmRestarts
+#   T_0: 10
+#   T_mult: 2
+
+scheduler:
+  type: torch.optim.lr_scheduler.ReduceLROnPlateau
+  factor: 0.5
+  patience: 2
+  # mode: 'min'
+  verbose: True
+
+earlystop:
+  patience: 10
+
+# loss:
+#   type: bcedice # bce, dice, bcedice, tversky, bcedice2
+
+checkpoint_callback:
+  type: pytorch_lightning.callbacks.ModelCheckpoint
+  filepath: "2021-02-17"
+  monitor: val_iou
+  verbose: True
+  mode: max
+  save_top_k: -1
+
+
+train_aug: 
+  - type: albumentations.RandomResizedCrop
+    height: 800
+    width: 600
+    p: 0.25
+    scale:
+      - 0.8
+      - 1.0
+    ratio: 
+      - 1
+      - 1
+  - type: albumentations.CLAHE
+    p: 0.1
+  - type: albumentations.RandomBrightnessContrast
+    p: 0.1
+  - type: albumentations.RandomGamma
+    p: 0.1
+
+  - type: albumentations.Resize
+    height: 224
+    width: 224
+    always_apply: True
+  - type: albumentations.HorizontalFlip
+    p: 0.5
+  
+
+
+
+val_aug:
+  - type: albumentations.Resize
+    height: 224
+    width: 224
+    always_apply: True
+
